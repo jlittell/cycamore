@@ -43,15 +43,15 @@ void Storage::InitFrom(cyclus::QueryableBackend* b){
   using cyclus::toolkit::Commodity;
   Commodity commod = Commodity(out_commod);
   cyclus::toolkit::CommodityProducer::Add(commod);
-  cyclus::toolkit::CommodityProducer::SetCapacity(commod, capacity);
+  cyclus::toolkit::CommodityProducer::SetCapacity(commod, throughput);
   cyclus::toolkit::CommodityProducer::SetCost(commod, cost);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Storage::EnterNotify() {
   Facility::EnterNotify();
-  buy_policy.Init(this, &inventory, std::string("inventory"), capacity).Set(in_commod).Start();
-  sell_policy.Init(this, &stocks, std::string("stocks"), capacity).Set(out_commod).Start();
+  buy_policy.Init(this, &inventory, std::string("inventory"), throughput).Set(in_commod).Start();
+  sell_policy.Init(this, &stocks, std::string("stocks"), throughput).Set(out_commod).Start();
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -69,10 +69,10 @@ std::string Storage::str() {
      << "     Input Commodity = " << in_commod_() << ",\n"
      << "     Output Commodity = " << out_commod_() << ",\n"
      << "     Process Time = " << process_time_() << ",\n"
-     << "     Capacity = " << capacity_() << ",\n"
+     << "     Throughput = " << throughput_() << ",\n"
      << " commod producer members: " << " produces "
      << out_commod << "?:" << ans
-     << " capacity: " << cyclus::toolkit::CommodityProducer::Capacity(out_commod_())
+     << " throughput: " << cyclus::toolkit::CommodityProducer::Capacity(out_commod_())
      << " cost: " << cyclus::toolkit::CommodityProducer::Cost(out_commod_())
      << "'}";
   return ss.str();
@@ -98,7 +98,7 @@ void Storage::Tock() {
   BeginProcessing_(); // place unprocessed inventory into processing
 
   if( ready() >= 0 || process_time_() == 0 ) {
-    ProcessMat_(capacity_()); // place processing into stocks
+    ProcessMat_(throughput_()); // place processing into stocks
   }
 
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
